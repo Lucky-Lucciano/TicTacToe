@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title> Connect 4 </title>
+    <style>
+        .pathValue {
+            font-size: 13px;
+            bottom: 5px;
+            color: yellow;
+        }
+
+        .cameFrom {
+            font-size: 13px;
+            float: right;
+            color: greenyellow;
+        }
+
+        .wall {
+            /*fill: hsl(60, 5%, 50%);*/
+            /*stroke: hsl(60, 5%, 50%);*/
+            /*stroke-width: 1.5px;*/
+            background-color: wheat !important;
+        }
+
+        .grass {
+            /*fill: hsl(60, 5%, 50%);*/
+            /*stroke: hsl(60, 5%, 50%);*/
+            /*stroke-width: 1.5px;*/
+            background-color: greenyellow !important;
+        }
+
+        .water {
+            /*fill: hsl(60, 5%, 50%);*/
+            /*stroke: hsl(60, 5%, 50%);*/
+            /*stroke-width: 1.5px;*/
+            background-color: steelblue !important;
+        }
+
+        .red {
+            /*fill: hsl(60, 5%, 50%);*/
+            /*stroke: hsl(60, 5%, 50%);*/
+            /*stroke-width: 1.5px;*/
+            /*background-color: #b4090b !important;*/
+        }
+
+        .blue {
+            /*fill: hsl(60, 5%, 50%);*/
+            /*stroke: hsl(60, 5%, 50%);*/
+            /*stroke-width: 1.5px;*/
+            /*background-color: #244fed !important;*/
+        }
+
+        #mainContainer {
+            width: 300px;
+            top: 200px;
+            position: relative;
+        }
+
+        #score {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+<div id="mainContainer">
+    <div>
+        Start:
+        <input type="button" onclick="Connect4.resetScore()" value="Start"/>
+        <input type="button" onclick="Connect4.resetScore()" value="Reset"/>
+    </div>
+
+    <div id="currentTurn">
+        Turn: <span id="currentPlayerTurn"> Red </span>
+    </div>
+
+    <div id="score">
+        <div> Score: </div>
+        Player 1 score: <input id="score_p1" type="text" value="0"/>
+        Player 2 score: <input id="score_p2" type="text" value="0"/>
+    </div>
+
+    <div id="controls">
+        <div> Controls: </div>
+        <input id="btnNewGame" type="button" onclick="Connect4.newGame()" value="New Game"/>
+        <input id="btnUndo" type="button" onclick="Connect4.resetScore()" value="Undo"/>
+    </div>
+</div>
+<!--Depth value: <input type="text"  id="depthValue"/>-->
+<script src="js/ConnectFour.js?6"></script>
+</body>
+</html>
