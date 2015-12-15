@@ -60,6 +60,58 @@
         #score {
             width: 300px;
         }
+
+        .big_cell {
+            width: 300px;
+            height: 300px;
+        }
+
+        .cell {
+            float: left;
+            height: 32%;
+            width: 32%;
+        }
+
+        .small_field {
+            height: 80%;
+            width: 80%;
+            margin: 11% auto;
+        }
+
+        .playerBlue {
+            background-color: #46d7ff;
+            width: 30%;
+            height: 30%;
+            margin: 1%;
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+        }
+
+        .playerRed {
+            background-color: #ff5f5c;
+            width: 30%;
+            height: 30%;
+            margin: 1%;
+            -webkit-border-radius: 4px;
+            -moz-border-radius: 4px;
+            border-radius: 4px;
+        }
+
+        .cell.center {
+            border-left: 1px solid #555555;
+            border-right: 1px solid #555555;
+        }
+
+        .cell.middle {
+            border-top: 1px solid #555555;
+            border-bottom: 1px solid #555555;
+        }
+
+        .small_cell.player1, .small_cell.player2 {
+            position: relative;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -75,18 +127,35 @@
     </div>
 
     <div id="score">
-        <div> Score: </div>
+        <div> Score:</div>
         Player 1 score: <input id="score_p1" type="text" value="0"/>
         Player 2 score: <input id="score_p2" type="text" value="0"/>
     </div>
+</div>
 
-    <div id="controls">
-        <div> Controls: </div>
-        <input id="btnNewGame" type="button" onclick="Connect4.newGame()" value="New Game"/>
-        <input id="btnUndo" type="button" onclick="Connect4.resetScore()" value="Undo"/>
+<div class="big_cell" style="margin: 0 auto">
+    <div class="cell">
+        <div class="big_cell" id="tileContainer">
+            <div class="small_cell cell top left playerBlue" data-fieldnr="0"></div>
+            <div class="small_cell cell top center" data-fieldnr="1"></div>
+            <div class="small_cell cell top right" data-fieldnr="2"></div>
+            <br>
+
+            <div class="small_cell cell middle left" data-fieldnr="3"></div>
+            <div class="small_cell cell middle center playerRed" data-fieldnr="4">
+                <div class="animator"></div>
+            </div>
+            <div class="small_cell cell middle right" data-fieldnr="5"></div>
+            <br>
+
+            <div class="small_cell cell bottom left" data-fieldnr="6"></div>
+            <div class="small_cell cell bottom center" data-fieldnr="7"></div>
+            <div class="small_cell cell bottom right" data-fieldnr="8"></div>
+        </div>
     </div>
 </div>
+
 <!--Depth value: <input type="text"  id="depthValue"/>-->
-<script src="js/ConnectFour.js?6"></script>
+<script src="js/TicTacToe.js?12"></script>
 </body>
 </html>

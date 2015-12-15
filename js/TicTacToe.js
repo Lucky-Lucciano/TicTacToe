@@ -9,7 +9,8 @@ var TicTacToe = (function() {
         player1Score = 0;
         player2Score = 0;
 
-        ConnectFourBoard  = new Board(6, 7);
+        //ConnectFourBoard  = new Board(6, 7);
+        TicTacToeBoard.init();
     };
 
     var start = function() {
@@ -42,7 +43,22 @@ var TicTacToe = (function() {
         ConnectFourBoard.reset();
     };
 
-    var Board = function(rows, columns) {
+    TicTacToeBoard = (function(rows, columns) {
+        console.log("In it");
+
+        // TODO: dodati click event na sve Tiles od id=tileContainer
+        // i da dodaje classu i mijenja board
+
+        // TODO: prilikom svakog klika provjeriti je l terminal state
+
+        /* TODO: create getTerminalState metoda koja vraca:
+                 1 - RED WINNER
+                 2 - BLUE WINNER
+                 3 - DRAW
+                 0 - NIJE TERMINAL
+        */
+
+
         self = this;
 
         this.board = null;
@@ -187,48 +203,6 @@ var TicTacToe = (function() {
             }
         };
 
-        var highlightFrontNode = function(node) {
-            document.getElementById(node).style.backgroundColor = 'blue';
-        };
-
-        var highlightCurrentNode = function(node) {
-            document.getElementById(node).style.backgroundColor = 'green';
-        };
-
-        var highlightVisitedNode = function(node) {
-            document.getElementById(node).style.backgroundColor = 'black';
-        };
-
-        var highlightGoalNodeCheck = function(node) {
-            document.getElementById(node).style.backgroundColor = 'purple';
-        };
-
-        var highlightGoal = function(node) {
-            document.getElementById(node).style.backgroundColor = 'yellow';
-        };
-
-        var highlightStart = function(node) {
-            document.getElementById(node).style.backgroundColor = 'white';
-        };
-
-        var highlightGoalRoad = function(node) {
-            document.getElementById(node).style.border = '4px solid yellow';
-        };
-
-        var clearNodeStyle = function(node) {
-            document.getElementById(node).style.backgroundColor = '#808080';
-        };
-
-        var createGoalRoad = function(road, goalNode) {
-            var from = road[goalNode];
-
-
-            if(road[goalNode] != "") {
-                highlightGoalRoad(from);
-                createGoalRoad(road, from);
-            }
-        };
-
         var contains = function(a, obj) {
             var i = a.length;
             while (i--) {
@@ -326,247 +300,7 @@ var TicTacToe = (function() {
             }
         };
 
-        this.sleep = function (miliseconds) {
-            var currentTime = new Date().getTime();
-            console.log("Sleeping for " + miliseconds + " ms...ZZZzzzzzzzzzzzzzz");
-            while (currentTime + miliseconds >= new Date().getTime()) {
-            }
-        };
-
-        this.Dijkstra = function(startNode) {
-            var frontier = [],
-                nodeBeingChecked,
-                found = false,
-                costSoFar = {},
-                cameFrom = {};
-
-            highlightStart(startNode);
-            frontier.push({
-                node : startNode,
-                priority: 0
-            });
-            costSoFar[startNode] = 0;
-            cameFrom[startNode] = "";
-
-            while(frontier.length > 0 && !found) {
-                var currentNode = frontier.shift().node,
-                    currentNodeHTML = document.getElementById(currentNode),
-                    neighbours = getFrontLine(currentNode),
-                    oldStyle = '',
-                    newCost = 0;
-
-                //this.history.push(currentNode);
-                highlightCurrentNode(currentNode);
-                currentNodeHTML.innerHTML = currentNode;
-
-                if(currentNode == this.goalNode) {
-                    highlightGoal(currentNode);
-                    found = true;
-
-                    //cameFrom[currentNode] = currentNode;
-
-                    createGoalRoad(cameFrom, currentNode);
-
-                    break;
-                }
-
-                // Od node iz frontier-a uzmi neighbours
-                for(var i = 0; i < neighbours.length; i++) {
-                    nodeBeingChecked = neighbours[i];
-                    newCost = costSoFar[currentNode] + movementCost(currentNode, nodeBeingChecked);
-
-                    oldStyle = document.getElementById(nodeBeingChecked).style.backgroundColor;
-                    highlightGoalNodeCheck(nodeBeingChecked);
-
-                    if(typeof costSoFar[nodeBeingChecked] == 'undefined' || newCost < costSoFar[nodeBeingChecked]) {
-                        costSoFar[nodeBeingChecked] = newCost;
-                        frontier.push({
-                            node: nodeBeingChecked,
-                            priority: newCost
-                        });
-
-                        cameFrom[nodeBeingChecked] = currentNode;
-                    }
-
-                    if(!found) {
-                        document.getElementById(nodeBeingChecked).style.backgroundColor = oldStyle;
-                    }
-                }
-
-                // Priority que pa sortiramo po najnizoj vrijednosti puta
-                frontier.sort(function(a, b){
-                    return a.priority - b.priority;
-                });
-
-                NodeUtilities.insertLengthValue(currentNodeHTML, costSoFar[currentNode]);
-                NodeUtilities.insertCameFrom(currentNodeHTML, cameFrom[currentNode]);
-                highlightVisitedNode(currentNode);
-            }
-        };
-
-        this.GreedyBestFirst = function(startNode) {
-            var frontier = [],
-                nodeBeingChecked,
-                found = false,
-                costSoFar = {},
-                cameFrom = {};
-
-            highlightStart(startNode);
-            frontier.push({
-                node : startNode,
-                priority: 0
-            });
-            costSoFar[startNode] = 0;
-            cameFrom[startNode] = "";
-
-            while(frontier.length > 0 && !found) {
-                var currentNode = frontier.shift().node,
-                    currentNodeHTML = document.getElementById(currentNode),
-                    neighbours = getFrontLine(currentNode),
-                    oldStyle = '',
-                    priority = 0;
-                //newCost = 0;
-
-                //this.history.push(currentNode);
-                highlightCurrentNode(currentNode);
-                currentNodeHTML.innerHTML = currentNode;
-
-                if(currentNode == this.goalNode) {
-                    highlightGoal(currentNode);
-                    found = true;
-
-                    //cameFrom[currentNode] = currentNode;
-
-                    createGoalRoad(cameFrom, currentNode);
-
-                    break;
-                }
-
-                // Od node iz frontier-a uzmi neighbours
-                for(var i = 0; i < neighbours.length; i++) {
-                    nodeBeingChecked = neighbours[i];
-                    //newCost = costSoFar[currentNode] + movementCost(currentNode, nodeBeingChecked);
-
-                    oldStyle = document.getElementById(nodeBeingChecked).style.backgroundColor;
-                    highlightGoalNodeCheck(nodeBeingChecked);
-
-                    if(typeof cameFrom[nodeBeingChecked] == 'undefined') {
-                        // For tracking - not used in calculations
-                        costSoFar[nodeBeingChecked] = costSoFar[currentNode] + movementCost(currentNode, nodeBeingChecked);;
-
-                        priority = Heuristics.manhattanDistance(this.goalNode, nodeBeingChecked);
-                        frontier.push({
-                            node: nodeBeingChecked,
-                            priority: priority
-                        });
-
-                        cameFrom[nodeBeingChecked] = currentNode;
-                    }
-
-                    if(!found) {
-                        document.getElementById(nodeBeingChecked).style.backgroundColor = oldStyle;
-                    }
-                }
-
-                // Priority que pa sortiramo po najnizoj vrijednosti puta
-                frontier.sort(function(a, b){
-                    return a.priority - b.priority;
-                });
-
-                NodeUtilities.insertLengthValue(currentNodeHTML, costSoFar[currentNode]);
-                NodeUtilities.insertCameFrom(currentNodeHTML, cameFrom[currentNode]);
-                highlightVisitedNode(currentNode);
-            }
-        };
-
-        this.A_Star = function(startNode) {
-            var frontier = [],
-                nodeBeingChecked,
-                found = false,
-                costSoFar = {},
-                cameFrom = {};
-
-            highlightStart(startNode);
-            frontier.push({
-                node : startNode,
-                priority: 0
-            });
-            costSoFar[startNode] = 0;
-            cameFrom[startNode] = startNode;
-
-            while(frontier.length > 0 && !found) {
-                var currentNode = frontier.shift().node,
-                    currentNodeHTML = document.getElementById(currentNode),
-                    neighbours = getFrontLine(currentNode),
-                    oldStyle = '',
-                    priority = 0,
-                    newCost = 0;
-
-                //this.history.push(currentNode);
-                highlightCurrentNode(currentNode);
-                currentNodeHTML.innerHTML = currentNode;
-
-                if(currentNode == this.goalNode) {
-                    highlightGoal(currentNode);
-                    found = true;
-
-                    //cameFrom[currentNode] = currentNode;
-
-                    createGoalRoad(cameFrom, currentNode);
-
-                    break;
-                }
-
-                // Od node iz frontier-a uzmi neighbours
-                for(var i = 0; i < neighbours.length; i++) {
-                    nodeBeingChecked = neighbours[i];
-                    newCost = costSoFar[currentNode] + movementCost(currentNode, nodeBeingChecked);
-
-                    oldStyle = document.getElementById(nodeBeingChecked).style.backgroundColor;
-                    highlightGoalNodeCheck(nodeBeingChecked);
-
-                    if(typeof costSoFar[nodeBeingChecked] == 'undefined' || newCost < costSoFar[nodeBeingChecked]) {
-                        costSoFar[nodeBeingChecked] = newCost;
-                        priority = newCost + Heuristics.manhattanDistance(this.goalNode, nodeBeingChecked);
-                        frontier.push({
-                            node: nodeBeingChecked,
-                            priority: priority
-                        });
-
-                        cameFrom[nodeBeingChecked] = currentNode;
-                    }
-
-                    if(!found) {
-                        document.getElementById(nodeBeingChecked).style.backgroundColor = oldStyle;
-                    }
-                }
-
-                // Priority que pa sortiramo po najnizoj vrijednosti puta
-                frontier.sort(function(a, b){
-                    return a.priority - b.priority;
-                });
-
-                NodeUtilities.insertLengthValue(currentNodeHTML, costSoFar[currentNode]);
-                NodeUtilities.insertCameFrom(currentNodeHTML, cameFrom[currentNode]);
-                highlightVisitedNode(currentNode);
-            }
-        }
-
-        this.iterativeDeepeningSearch = function(currentNode) {
-            var depth = 0;
-
-            while(!self.depthOptions.found) {
-                depth++;
-                self.depthLimitSearch(currentNode, depth);
-
-                this.reset();
-
-                if(self.depthOptions.found) {
-                    console.log("Found him on Depth Level: " + depth);
-                }
-            }
-        };
-    };
+    })(3, 3);
 
     return {
         init: init,
@@ -576,5 +310,5 @@ var TicTacToe = (function() {
     }
 })();
 
-Connect4.init();
+TicTacToe.init();
 //XOI.start();
