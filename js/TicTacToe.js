@@ -78,41 +78,24 @@ var TicTacToe = (function() {
         };
 
         var init = function() {
-            this.board = document.createElement('table');
-            this.board.id = 'board';
-            this.board.style.margin = '80px auto';
-            this.board.style.backgroundColor = '#FFFF99';
-            this.board.style.borderSpacing = '0px';
+            this.board = document.getElementById('tileContainer');
 
-            for(var i = 0; i < rows; i++) {
-                var blankRow = document.createElement('tr');
-                blankRow.id = 'row_' + i;
+            var childTiles = this.board.childNodes;
 
-                for(var j = 0; j < columns; j++) {
-                    var blankTile = document.createElement('td');
-                    blankTile.id = i + 'x' + j;
-                    //blankTile.style.backgroundColor = '#808080';
-                    blankTile.style.width = '50px';
-                    blankTile.style.height = '50px';
-                    blankTile.style.color = '#F3102E';
-                    blankTile.style.fontSize= '24px';
-                    blankTile.style.textAlign = 'center';
-                    blankTile.style.cursor = 'pointer';
+            for(var i = 0; i < childTiles.length; i++) {
+                var tempTile = childTiles[i];
+                tempTile.id = 'tile_' + (i + 1);
 
-                    blankTile.appendChild(createTile());
-                    blankRow.appendChild(blankTile);
-                }
-
-                blankRow.onclick = function(e) {
+                tempTile.onclick = function(e) {
                     var target = e.target;
 
-                    if(e.target.id == "") {
-                        target = e.target.parentNode;
-                    }
+                    //if(e.target.id == "") {
+                    //    target = e.target.parentNode;
+                    //}
 
-                    var column = target.id.split('x')[1];
+                    var tileId = target.id.split('_')[1];
 
-                    insertPiece(column);
+                    insertPiece(target);
 
                     var fourConnected = has4PiecesConnected();
                     if(fourConnected) {
@@ -123,29 +106,19 @@ var TicTacToe = (function() {
 
                     changeActivePlayer();
                 };
-
-                this.board.appendChild(blankRow);
             }
-
-            document.body.appendChild(this.board);
         };
 
         init();
 
 
 
-        var insertPiece = function(column) {
-            for (var i = rows - 1; i >= 0; i--) {
-                var tile = document.getElementById(i + 'x' + column);
-
-                if(tile.className == '') {
-                    var newTile = currentPlayer == 'red' ? createTile('red') : createTile('blue');
-                    tile.childNodes[0].parentElement.removeChild(tile.childNodes[0]);
-                    tile.appendChild(newTile);
-                    tile.className = currentPlayer;
-
-                    break;
-                }
+        var insertPiece = function(tile) {
+            if(tile.className == '') {
+                var newTile = currentPlayer == 'red' ? createTile('red') : createTile('blue');
+                tile.childNodes[0].parentElement.removeChild(tile.childNodes[0]);
+                tile.appendChild(newTile);
+                tile.className = currentPlayer;
             }
         };
 
