@@ -5,12 +5,12 @@ var TicTacToe = (function() {
         player2Score;
 
     var init = function() {
-        currentPlayer = 'red';
+        currentPlayer = 'Red';
         player1Score = 0;
         player2Score = 0;
 
         //ConnectFourBoard  = new Board(6, 7);
-        TicTacToeBoard.init();
+        //TicTacToeBoard.init();
     };
 
     var start = function() {
@@ -26,21 +26,21 @@ var TicTacToe = (function() {
     };
 
     var changeActivePlayer = function() {
-        if(currentPlayer == 'red') {
-            currentPlayer = 'blue';
+        if(currentPlayer == 'Red') {
+            currentPlayer = 'Blue';
         } else {
-            currentPlayer = 'red';
+            currentPlayer = 'Red';
         }
     };
 
-    var has4PiecesConnected = function() {
+    var checkWinnerState = function() {
         return false;
     };
 
     var newGame = function() {
         resetScore();
 
-        ConnectFourBoard.reset();
+        TicTacToeBoard.reset();
     };
 
     TicTacToeBoard = (function(rows, columns) {
@@ -87,18 +87,19 @@ var TicTacToe = (function() {
                 tempTile.id = 'tile_' + (i + 1);
 
                 tempTile.onclick = function(e) {
+                    console.log("Yes")
                     var target = e.target;
 
                     //if(e.target.id == "") {
                     //    target = e.target.parentNode;
                     //}
 
-                    var tileId = target.id.split('_')[1];
+                    //var tileId = target.id.split('_')[1];
 
                     insertPiece(target);
 
-                    var fourConnected = has4PiecesConnected();
-                    if(fourConnected) {
+                    var threeConnected = checkWinnerState();
+                    if(threeConnected) {
 
                         alert(currentPlayer + "has won!")
                         return;
@@ -111,14 +112,12 @@ var TicTacToe = (function() {
 
         init();
 
-
-
         var insertPiece = function(tile) {
-            if(tile.className == '') {
-                var newTile = currentPlayer == 'red' ? createTile('red') : createTile('blue');
-                tile.childNodes[0].parentElement.removeChild(tile.childNodes[0]);
-                tile.appendChild(newTile);
-                tile.className = currentPlayer;
+            if(tile.className.indexOf("player") == -1) {
+                //var newTile = currentPlayer == 'Red' ? createTile('red') : createTile('blue');
+                //tile.childNodes[0].parentElement.removeChild(tile.childNodes[0]);
+                //tile.appendChild(newTile);
+                tile.className += ' player' + currentPlayer;
             }
         };
 
