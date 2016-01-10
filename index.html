@@ -112,42 +112,42 @@
             position: relative;
             display: block;
         }
+
+        #currentPlayerTurn {
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
-<!--<div id="mainContainer">-->
+<div id="mainContainer">
     <!--<div>-->
         <!--Start:-->
         <!--<input type="button" onclick="Connect4.resetScore()" value="Start"/>-->
         <!--<input type="button" onclick="Connect4.resetScore()" value="Reset"/>-->
     <!--</div>-->
 
-    <!--<div id="currentTurn">-->
-        <!--Turn: <span id="currentPlayerTurn"> Red </span>-->
-    <!--</div>-->
+    <div id="currentTurn">
+        Turn: <span id="currentPlayerTurn"> Red </span>
+    </div>
 
     <!--<div id="score">-->
         <!--<div> Score:</div>-->
         <!--Player 1 score: <input id="score_p1" type="text" value="0"/>-->
         <!--Player 2 score: <input id="score_p2" type="text" value="0"/>-->
     <!--</div>-->
-<!--</div>-->
+</div>
 
 <div class="big_cell" style="margin: 0 auto">
     <div class="cell">
         <div class="big_cell" id="tileContainer">
-            <div class="small_cell cell top left playerBlue" data-fieldnr="0"></div>
+            <div class="small_cell cell top left" data-fieldnr="0"></div>
             <div class="small_cell cell top center" data-fieldnr="1"></div>
             <div class="small_cell cell top right" data-fieldnr="2"></div>
-            <br>
-
+            <!--<br>-->
             <div class="small_cell cell middle left" data-fieldnr="3"></div>
-            <div class="small_cell cell middle center playerRed" data-fieldnr="4">
-                <div class="animator"></div>
-            </div>
+            <div class="small_cell cell middle center" data-fieldnr="4"></div>
             <div class="small_cell cell middle right" data-fieldnr="5"></div>
-            <br>
-
+            <!--<br>-->
             <div class="small_cell cell bottom left" data-fieldnr="6"></div>
             <div class="small_cell cell bottom center" data-fieldnr="7"></div>
             <div class="small_cell cell bottom right" data-fieldnr="8"></div>

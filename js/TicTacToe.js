@@ -1,13 +1,46 @@
+// Blue - X; Red - O
+
 var TicTacToe = (function() {
+    var ROWS = 3,
+        COLUMNS = 3,
+        OUTCOMES = {
+            DRAW: 0,
+            BLUE_WON: 1,
+            RED_WON: -1
+        };
+
     var TicTacToeBoard,
         currentPlayer,
+        gameOutcome,
+        isGameActive,
+        currentRow,
+        currentColumn,
         player1Score,
-        player2Score;
+        player2Score,
+        vsAI,
+        player1,
+        player2,
+        AIPick;
 
     var init = function() {
         currentPlayer = 'Red';
         player1Score = 0;
         player2Score = 0;
+        currentRow = -1;
+        currentColumn = -1;
+
+        vsAI = true;
+
+        if(vsAI) {
+            player1 = currentPlayer;
+            AIPick = getReversePlayer(currentPlayer);
+        } else {
+            player1 = currentPlayer;
+            player2 = getReversePlayer(currentPlayer);
+        }
+
+
+        isGameActive = 1;
 
         //ConnectFourBoard  = new Board(6, 7);
         //TicTacToeBoard.init();
@@ -31,10 +64,86 @@ var TicTacToe = (function() {
         } else {
             currentPlayer = 'Red';
         }
+
+        document.getElementById("currentPlayerTurn").innerHTML = currentPlayer;
     };
 
-    var checkWinnerState = function() {
+    var getReversePlayer = function(player) {
+        if(player == 'Red') {
+            return 'Blue';
+        } else {
+            return 'Red';
+        }
+    };
+
+    var checkWinnerState = function(board) {
+        if(hasWon(board ? board : null)) {  // check if winning move
+            gameOutcome = (currentPlayer == 'Red') ? OUTCOMES.RED_WON : OUTCOMES.BLUE_WON;
+            isGameActive = false;
+
+            return true;
+        } else if(isDraw(board ? board : null)) {  // check for draw
+            gameOutcome = OUTCOMES.DRAW;
+            isGameActive = false;
+
+            return true;
+        }
+
         return false;
+    };
+
+    var isDraw = function(boardCopy) {
+        var board = boardCopy ? boardCopy : TicTacToeBoard.board;
+
+        for(var row = 0; row < ROWS; ++row) {
+            for(var col = 0; col < COLUMNS; ++col) {
+                if(board[row][col] == '') {
+                    return false;  // an empty cell found, not draw, exit
+                }
+            }
+        }
+        return true;  // no empty cell, it's a draw
+    };
+
+    var hasWon = function(boardCopy) {
+        var board = boardCopy ? boardCopy : TicTacToeBoard.board;
+
+        return (board[currentRow][0] == currentPlayer         // 3-in-the-row
+                && board[currentRow][1] == currentPlayer
+                && board[currentRow][2] == currentPlayer
+                || board[0][currentColumn] == currentPlayer      // 3-in-the-column
+                && board[1][currentColumn] == currentPlayer
+                && board[2][currentColumn] == currentPlayer
+                || currentRow == currentColumn            // 3-in-the-diagonal
+                && board[0][0] == currentPlayer
+                && board[1][1] == currentPlayer
+                && board[2][2] == currentPlayer
+                || currentRow + currentColumn == 2  // 3-in-the-opposite-diagonal
+                && board[0][2] == currentPlayer
+                && board[1][1] == currentPlayer
+                && board[2][0] == currentPlayer);
+    };
+
+    var AIPlay = function() {
+        var currentBoardState = TicTacToeBoard.cloneBoard(TicTacToeBoard.board),
+            idealMove = Minimax.minimaxDecision(currentBoardState, currentPlayer);
+
+        if(!isGameActive) {
+            return;
+        }
+
+        var target = document.getElementById(idealMove.row + '_' + idealMove.col);
+
+        currentRow = idealMove.row;
+        currentColumn = idealMove.col;
+
+        if (!TicTacToeBoard.insertPiece(target)) {
+            return;
+        }
+
+        checkGameCompleted();
+
+        changeActivePlayer();
     };
 
     var newGame = function() {
@@ -43,25 +152,190 @@ var TicTacToe = (function() {
         TicTacToeBoard.reset();
     };
 
+    var checkGameCompleted = function() {
+        if(checkWinnerState()) {
+            if(gameOutcome != OUTCOMES.DRAW) {
+                alert(currentPlayer + " has won!");
+                return;
+            } else {
+                alert("DRAW :(");
+                return;
+            }
+        }
+    };
+
+    Minimax = (function(){
+        var currentPlayer,
+            Max,
+            Min;
+
+        var init = function() {
+
+        };
+
+        var getRandomInt = function(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+
+        var isWinningState = function(boardCopy, currentRow, currentColumn, currentPlayer) {
+            var board = boardCopy ? boardCopy : TicTacToeBoard.board;
+
+            return (board[currentRow][0] == currentPlayer         // 3-in-the-row
+            && board[currentRow][1] == currentPlayer
+            && board[currentRow][2] == currentPlayer
+            || board[0][currentColumn] == currentPlayer      // 3-in-the-column
+            && board[1][currentColumn] == currentPlayer
+            && board[2][currentColumn] == currentPlayer
+            || currentRow == currentColumn            // 3-in-the-diagonal
+            && board[0][0] == currentPlayer
+            && board[1][1] == currentPlayer
+            && board[2][2] == currentPlayer
+            || currentRow + currentColumn == 2  // 3-in-the-opposite-diagonal
+            && board[0][2] == currentPlayer
+            && board[1][1] == currentPlayer
+            && board[2][0] == currentPlayer);
+        };
+
+        var isTerminalState = function(board, row, col, player) {
+            if(isWinningState(board, row, col, player)) {
+                var freeCells = 1;
+
+                for(var row = 0; row < ROWS; ++row) {
+                    for(var col = 0; col < COLUMNS; ++col) {
+                        if(board[row][col] == '') {
+                            freeCells++;
+                        }
+                    }
+                }
+                return freeCells * ((player == 'Red') ? OUTCOMES.RED_WON : OUTCOMES.BLUE_WON);
+            } else if(isDraw(board)) {
+                return OUTCOMES.DRAW;
+            }
+
+            return 'NO';
+        };
+
+        var getStateActions = function(board) {
+            var actions = [];
+
+            for(var row = 0; row < ROWS; ++row) {
+                for(var col = 0; col < COLUMNS; ++col) {
+                    if(board[row][col] == '') {
+                        actions.push({
+                            row: row,
+                            col: col
+                        });
+                    }
+                }
+            }
+
+            return actions.length > 0 ? actions : null;
+        };
+
+        var actionResult = function(board, action, player) {
+            board[action.row][action.col] = player;
+
+            return board;
+        };
+
+        var getUtilityValue = function(gameResult) {
+            switch(gameResult) {
+                case OUTCOMES.DRAW:
+                    return OUTCOMES.DRAW;
+                case OUTCOMES.BLUE_WON:
+                    return OUTCOMES.BLUE_WON;
+                case OUTCOMES.RED_WON:
+                    return OUTCOMES.RED_WON;
+            }
+        };
+
+        var getRandomMove = function(board) {
+            var possibleStateActions = getStateActions(board);
+
+            return possibleStateActions[getRandomInt(0, possibleStateActions.length - 1)];
+        };
+
+        var maxValue = function(board, lastAction, lastPlayer) {
+            var state = isTerminalState(board, lastAction.row, lastAction.col, lastPlayer);
+
+            if(state != 'NO') {
+                //return getUtilityValue(state);
+                console.log("Max state: " + state);
+                console.log("-------------------");
+                return state;
+            }
+
+            var v = Number.NEGATIVE_INFINITY,
+                possibleStateActions = getStateActions(board),
+                tempActionState;
+
+            for(var i = 0; i < possibleStateActions.length; i++) {
+                tempActionState = actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Max);
+                v = Math.max(v, minValue(tempActionState, possibleStateActions[i], Max));
+            }
+
+            return v;
+        };
+
+        var minValue = function(board, lastAction, lastPlayer) {
+            var state = isTerminalState(board, lastAction.row, lastAction.col, lastPlayer);
+
+            if(state != 'NO') {
+                //return getUtilityValue(state);
+                console.log("Min state: " + state);
+                console.log("-------------------");
+                return state;
+            }
+
+            var v = Number.POSITIVE_INFINITY,
+                possibleStateActions = getStateActions(board),
+                tempActionState;
+
+            for(var i = 0; i < possibleStateActions.length; i++) {
+                tempActionState = actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Min);
+                v = Math.min(v, maxValue(tempActionState, possibleStateActions[i], Min));
+            }
+
+            return v;
+        };
+
+        var minimaxDecision = function(board, player) {
+            currentPlayer = player;
+            Max = player;
+            Min = getReversePlayer(player);
+
+            var possibleStateActions = getStateActions(board),
+                actionUtilities = [];
+
+            for(var i = 0; i < possibleStateActions.length; i++) {
+                actionUtilities[i] = minValue(actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Max), possibleStateActions[i], Max);
+            }
+
+            var max = Number.NEGATIVE_INFINITY,
+                maxKey;
+
+            for(var utilValue in actionUtilities) {
+                if(actionUtilities[utilValue] > max) {
+                    max = actionUtilities[utilValue];
+                    maxKey = utilValue
+                }
+            }
+
+            return possibleStateActions[maxKey];
+        };
+
+        return {
+            init: init,
+            minimaxDecision: minimaxDecision,
+            getRandomMove: getRandomMove
+        }
+    })();
+
     TicTacToeBoard = (function(rows, columns) {
-        console.log("In it");
-
-        // TODO: dodati click event na sve Tiles od id=tileContainer
-        // i da dodaje classu i mijenja board
-
-        // TODO: prilikom svakog klika provjeriti je l terminal state
-
-        /* TODO: create getTerminalState metoda koja vraca:
-                 1 - RED WINNER
-                 2 - BLUE WINNER
-                 3 - DRAW
-                 0 - NIJE TERMINAL
-        */
-
-
         self = this;
 
         this.board = null;
+        this.boardMirror = null;
 
         var createTile = function(type) {
             var tile = document.createElement('img');
@@ -78,35 +352,52 @@ var TicTacToe = (function() {
         };
 
         var init = function() {
+            var counter = 0;
+
             this.board = document.getElementById('tileContainer');
+            var childTiles = this.board.getElementsByTagName('div');
 
-            var childTiles = this.board.childNodes;
+            this.boardMirror = new Array(ROWS);
+            for (var r = 0; r < ROWS; r++) {
+                this.boardMirror[r] = new Array(COLUMNS);
+            }
 
-            for(var i = 0; i < childTiles.length; i++) {
-                var tempTile = childTiles[i];
-                tempTile.id = 'tile_' + (i + 1);
+            for(var i = 0; i < ROWS; i++) {
+                for(var j = 0; j < COLUMNS; j++) {
+                    var tempTile = childTiles[counter];
+                    tempTile.id = i + '_' + j;
 
-                tempTile.onclick = function(e) {
-                    console.log("Yes")
-                    var target = e.target;
+                    this.boardMirror[i][j] = '';
 
-                    //if(e.target.id == "") {
-                    //    target = e.target.parentNode;
-                    //}
+                    tempTile.onclick = function(e) {
+                        if(!isGameActive) {
+                            return;
+                        }
 
-                    //var tileId = target.id.split('_')[1];
+                        var target = e.target;
 
-                    insertPiece(target);
+                        currentRow = target.id.split('_')[0];
+                        currentColumn = target.id.split('_')[1];
 
-                    var threeConnected = checkWinnerState();
-                    if(threeConnected) {
+                        if (!insertPiece(target)) {
+                            return;
+                        }
 
-                        alert(currentPlayer + "has won!")
-                        return;
-                    }
+                        checkGameCompleted();
 
-                    changeActivePlayer();
-                };
+                        changeActivePlayer();
+
+                        if(vsAI) {
+                            AIPlay();
+                        }
+                    };
+
+                    counter++;
+                }
+            }
+
+            if(vsAI) {
+                AIPlay();
             }
         };
 
@@ -114,11 +405,29 @@ var TicTacToe = (function() {
 
         var insertPiece = function(tile) {
             if(tile.className.indexOf("player") == -1) {
-                //var newTile = currentPlayer == 'Red' ? createTile('red') : createTile('blue');
-                //tile.childNodes[0].parentElement.removeChild(tile.childNodes[0]);
-                //tile.appendChild(newTile);
                 tile.className += ' player' + currentPlayer;
+                self.boardMirror[currentRow][currentColumn] = currentPlayer;
+
+                return true;
             }
+
+            return false;
+        };
+
+        var cloneBoard = function(origBoard) {
+            var clone = new Array(ROWS);
+
+            for (var r = 0; r < ROWS; r++) {
+                clone[r] = new Array(COLUMNS);
+            }
+
+            for(var i = 0; i < ROWS; i++) {
+                for (var j = 0; j < COLUMNS; j++) {
+                    clone[i][j] = origBoard[i][j];
+                }
+            }
+
+            return clone;
         };
 
         this.reset = function() {
@@ -142,21 +451,6 @@ var TicTacToe = (function() {
 
                     blankTile.appendChild(createTile());
                 }
-            }
-        };
-
-        var NodeUtilities = {
-            insertLengthValue: function(node, distance) {
-                var lengthVal = document.createElement("span");
-                lengthVal.className = "pathValue";
-                lengthVal.innerHTML = distance;
-                node.appendChild(lengthVal);
-            },
-            insertCameFrom: function(node, cameFrom) {
-                var cameFromHTML = document.createElement("span");
-                cameFromHTML.className = "cameFrom";
-                cameFromHTML.innerHTML = cameFrom;
-                node.appendChild(cameFromHTML);
             }
         };
 
@@ -185,94 +479,13 @@ var TicTacToe = (function() {
             return false;
         };
 
-        var getFrontLine = function(node) {
-            var params = node.split('x'),
-                i = parseInt(params[0]),
-                j = parseInt(params[1]),
-                fl = [],
-                tempNode = '';
+        return {
+            board: this.boardMirror,
+            cloneBoard: cloneBoard,
+            insertPiece: insertPiece
+        }
 
-            var isWall = function(node) {
-                return document.getElementById(node).className == 'wall';
-            };
-
-            if((i-1) >= 0) {
-                tempNode = (i-1) + 'x' + j;
-                if(!isWall(tempNode))
-                    fl.push(tempNode);
-                //highlightFrontNode(tempNode);
-            }
-
-            if((j-1) >= 0) {
-                tempNode = i + 'x' + (j - 1);
-                if(!isWall(tempNode))
-                    fl.push(tempNode);
-                //highlightFrontNode(tempNode);
-            }
-
-            if((i+1) < rows) {
-                tempNode = (i+1) + 'x' + j;
-                if(!isWall(tempNode))
-                    fl.push(tempNode);
-                //highlightFrontNode(tempNode);
-            }
-
-            if((j+1) < columns) {
-                tempNode = i + 'x' + (j+1);
-                if(!isWall(tempNode))
-                    fl.push(tempNode);
-                //highlightFrontNode(tempNode);
-            }
-
-            return fl;
-        };
-
-        var movementCost = function(a, b) {
-            var tileType = document.getElementById(b).className;
-
-            if(tileType == 'grass') {
-                return 5;
-            } else if(tileType == 'water') {
-                return 10;
-            } else {
-                return 1;
-            }
-        };
-
-        this.start = function(option) {
-            this.startNode = start;
-            this.goalNode = goal;
-            this.currentNode = start;
-
-            this.reset();
-
-            this.depthOptions = {
-                depthVal: 3,
-                nodeBeingChecked : '',
-                found : false,
-                iteration : 0,
-                distance : {},
-                cameFrom : {},
-                unlimited : false
-            };
-
-            this.depthOptions.distance[this.startNode] = 0;
-            this.depthOptions.cameFrom[this.startNode] = "";
-
-            switch(option){
-                case 1:
-                    this.Dijkstra(this.startNode);
-                    break;
-                case 2:
-                    this.GreedyBestFirst(this.startNode);
-                    break;
-                case 3:
-                    this.A_Star(this.startNode);
-                    break;
-            }
-        };
-
-    })(3, 3);
+    })(ROWS, COLUMNS);
 
     return {
         init: init,
@@ -283,4 +496,3 @@ var TicTacToe = (function() {
 })();
 
 TicTacToe.init();
-//XOI.start();
