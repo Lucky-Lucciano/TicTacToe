@@ -3,6 +3,7 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title> Tic Tac Toe </title>
+    <link rel="shortcut icon" type="image/x-icon" href="res/favicon.ico">
     <style>
         .pathValue {
             font-size: 13px;
@@ -125,6 +126,18 @@
         <!--<input type="button" onclick="Connect4.resetScore()" value="Start"/>-->
         <!--<input type="button" onclick="Connect4.resetScore()" value="Reset"/>-->
     <!--</div>-->
+    <div>
+        <div style="margin-bottom: 5px; border: 1px black dashed; padding: 2px;">
+            AI type:
+            <form action="">
+                <input type="radio" name="ai-type" value="minimax"> Minimax <br>
+                <input type="radio" name="ai-type" value="alpha-beta" checked> Alpha-Beta pruning <br>
+            </form>
+        </div>
+        <div style=" border: 1px black dashed; padding: 2px; border-top-style: hidden;">
+            Cut-off value: <input type="number" id="cutoffVal" min="1" placeholder="Leave blank for max depth"/>
+        </div>
+    </div>
 
     <div id="currentTurn">
         Turn: <span id="currentPlayerTurn"> Red </span>
@@ -156,6 +169,6 @@
 </div>
 
 <!--Depth value: <input type="text"  id="depthValue"/>-->
-<script src="js/TicTacToe.js?12"></script>
+<script src="js/TicTacToe.js?122"></script>
 </body>
 </html>

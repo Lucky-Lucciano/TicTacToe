@@ -124,12 +124,21 @@ var TicTacToe = (function() {
                 && board[2][0] == currentPlayer);
     };
 
-    var AIPlay = function() {
-        var currentBoardState = TicTacToeBoard.cloneBoard(TicTacToeBoard.board),
-            idealMove = Minimax.minimaxDecision(currentBoardState, currentPlayer);
-
+    var AIPlay = function(AIType) {
         if(!isGameActive) {
             return;
+        }
+
+        var currentBoardState = TicTacToeBoard.cloneBoard(TicTacToeBoard.board),
+            depth = parseInt(document.getElementById('cutoffVal').value),
+            idealMove;
+
+        Minimax.setCutOffValue(isNaN(depth) ? Number.POSITIVE_INFINITY : depth);
+
+        if(AIType == 'minimax') {
+            idealMove = Minimax.minimaxDecision(currentBoardState, currentPlayer);
+        } else if(AIType == 'alpha-beta') {
+            idealMove = Minimax.alphaBetaSearch(currentBoardState, currentPlayer);
         }
 
         var target = document.getElementById(idealMove.row + '_' + idealMove.col);
@@ -167,10 +176,17 @@ var TicTacToe = (function() {
     Minimax = (function(){
         var currentPlayer,
             Max,
-            Min;
+            Min,
+            actionValuePairs = {},
+            bestMove,
+            cutOffValue;
 
         var init = function() {
 
+        };
+
+        var getActionValuePairs = function() {
+            return actionValuePairs;
         };
 
         var getRandomInt = function(min, max) {
@@ -200,13 +216,14 @@ var TicTacToe = (function() {
             if(isWinningState(board, row, col, player)) {
                 var freeCells = 1;
 
-                for(var row = 0; row < ROWS; ++row) {
-                    for(var col = 0; col < COLUMNS; ++col) {
-                        if(board[row][col] == '') {
+                for(var r = 0; r < ROWS; r++) {
+                    for(var c = 0; c < COLUMNS; c++) {
+                        if(board[r][c] == '') {
                             freeCells++;
                         }
                     }
                 }
+
                 return freeCells * ((player == 'Red') ? OUTCOMES.RED_WON : OUTCOMES.BLUE_WON);
             } else if(isDraw(board)) {
                 return OUTCOMES.DRAW;
@@ -218,12 +235,12 @@ var TicTacToe = (function() {
         var getStateActions = function(board) {
             var actions = [];
 
-            for(var row = 0; row < ROWS; ++row) {
-                for(var col = 0; col < COLUMNS; ++col) {
-                    if(board[row][col] == '') {
+            for(var r = 0; r < ROWS; r++) {
+                for(var c = 0; c < COLUMNS; c++) {
+                    if(board[r][c] == '') {
                         actions.push({
-                            row: row,
-                            col: col
+                            row: r,
+                            col: c
                         });
                     }
                 }
@@ -260,21 +277,21 @@ var TicTacToe = (function() {
 
             if(state != 'NO') {
                 //return getUtilityValue(state);
-                console.log("Max state: " + state);
-                console.log("-------------------");
+                //console.log("Max state: " + state);
+                //console.log("-------------------");
                 return state;
             }
 
-            var v = Number.NEGATIVE_INFINITY,
+            var score = Number.NEGATIVE_INFINITY,
                 possibleStateActions = getStateActions(board),
                 tempActionState;
 
             for(var i = 0; i < possibleStateActions.length; i++) {
                 tempActionState = actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Max);
-                v = Math.max(v, minValue(tempActionState, possibleStateActions[i], Max));
+                score = Math.max(score, minValue(tempActionState, possibleStateActions[i], Max));
             }
 
-            return v;
+            return score;
         };
 
         var minValue = function(board, lastAction, lastPlayer) {
@@ -282,24 +299,24 @@ var TicTacToe = (function() {
 
             if(state != 'NO') {
                 //return getUtilityValue(state);
-                console.log("Min state: " + state);
-                console.log("-------------------");
+                //console.log("Min state: " + state);
+                //console.log("-------------------");
                 return state;
             }
 
-            var v = Number.POSITIVE_INFINITY,
+            var score = Number.POSITIVE_INFINITY,
                 possibleStateActions = getStateActions(board),
                 tempActionState;
 
             for(var i = 0; i < possibleStateActions.length; i++) {
                 tempActionState = actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Min);
-                v = Math.min(v, maxValue(tempActionState, possibleStateActions[i], Min));
+                score = Math.min(score, maxValue(tempActionState, possibleStateActions[i], Min));
             }
 
-            return v;
+            return score;
         };
 
-        var minimaxDecision = function(board, player) {
+        var minimaxDecision = function(board, player, depth) {
             currentPlayer = player;
             Max = player;
             Min = getReversePlayer(player);
@@ -324,12 +341,148 @@ var TicTacToe = (function() {
             return possibleStateActions[maxKey];
         };
 
+        var maxAlphaBetaValue = function(board, alpha, beta, lastAction, lastPlayer, depth, isRootCall) {
+            var state = isTerminalState(board, lastAction.row, lastAction.col, lastPlayer);
+            depth++;
+
+            if(state != 'NO') {
+                //return getUtilityValue(state);
+                //console.log("Max state: " + state + " - Alpha: " + alpha);
+
+                return state;
+            } else if(depth == cutOffValue) {
+                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board));
+                console.log("Min eval at depth: " + depth + "; state evaluation: " + eval);
+                return getUtilityValue(state);
+            }
+
+            var score = Number.NEGATIVE_INFINITY,
+                possibleStateActions = getStateActions(board);
+
+            for(var i = 0; i < possibleStateActions.length; i++) {
+                score = Math.max(score, minAlphaBetaValue(actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Max), alpha, beta, possibleStateActions[i], Max, depth));
+
+
+                // Ako je ovo zadovoljeno onda to ne odgovara MINu i dalje vrijednosti score-a nece ni gledati
+                // Posto je score uvijek Math.max, moze samo gore biti po beti
+                if(score >= beta)
+                    return score;
+
+                //Prune branch if true
+                //if(alpha >= beta)
+                //    return alpha;
+
+                if(score > alpha) {
+                    if(isRootCall) {
+                        bestMove = {
+                            row: possibleStateActions[i].row,
+                            col: possibleStateActions[i].col
+                        };
+                    }
+
+                    alpha = score;
+                }
+            }
+
+            return score;
+            //return alpha;
+        };
+
+        var minAlphaBetaValue = function(board, alpha, beta, lastAction, lastPlayer, depth) {
+            var state = isTerminalState(board, lastAction.row, lastAction.col, lastPlayer);
+            depth++;
+
+            if(state != 'NO') {
+                //return getUtilityValue(state);
+                //console.log("Min state: " + state + " - Beta: " + beta);
+                //console.log("-------------------");
+
+                return state;
+            } else if(depth == cutOffValue) {
+                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board));
+                console.log("Min eval at depth: " + depth + "; state evaluation: " + eval);
+                return eval;
+            }
+
+            var score = Number.POSITIVE_INFINITY,
+                possibleStateActions = getStateActions(board);
+
+            for(var i = 0; i < possibleStateActions.length; i++) {
+                score = Math.min(score, maxAlphaBetaValue(actionResult(TicTacToeBoard.cloneBoard(board), possibleStateActions[i], Min), alpha, beta, possibleStateActions[i], Min, depth, false));
+
+                // Ako je ovo zadovoljeno onda to ne odgovara MAXu i dalje vrijednosti score-a nece ni gledati
+                // Posto je score minimum, moze samo gore biti po alfi
+                if(score <= alpha)
+                    return score;
+
+                //beta = Math.min(beta, score);
+                // Prune if true
+                //if(alpha >= beta)
+                //    return beta;
+
+                beta = Math.min(beta, score);
+
+                //if(score <= alpha)
+                //    return alpha;
+                //
+                //beta = Math.min(beta, score);
+
+            }
+
+            return score;
+            //return beta;
+        };
+
+        var alphaBetaSearch = function(board, player, depth) {
+            var alphaNuclearOption = Number.NEGATIVE_INFINITY,
+                betaNuclearOption = Number.POSITIVE_INFINITY,
+                value;
+
+            Max = player;
+            Min = getReversePlayer(player);
+
+            value = maxAlphaBetaValue(TicTacToeBoard.cloneBoard(board), alphaNuclearOption, betaNuclearOption, {row: currentRow, col: currentColumn}, Min, 0, true);
+
+            console.log("End value: " + value);
+
+            return bestMove;
+        };
+
+        var setCutOffValue = function(value) {
+            cutOffValue = value;
+        };
+
         return {
             init: init,
             minimaxDecision: minimaxDecision,
-            getRandomMove: getRandomMove
+            getRandomMove: getRandomMove,
+            alphaBetaSearch: alphaBetaSearch,
+            getActionValuePairs: getActionValuePairs,
+            setCutOffValue: setCutOffValue
         }
     })();
+
+    var Heuristics = {
+        // TODO Opisati u diplomskom ovu vrstu Matematike i Manhattan distance
+        //Manhattan distance on a square grid - Taxi cab mathematics
+        manhattanDistance: function(to, from) {
+            var paramTo = to.split('x'),
+                toX = parseInt(paramTo[0]),
+                toY = parseInt(paramTo[1]),
+                paramFrom = from.split('x'),
+                fromX = parseInt(paramFrom[0]),
+                fromY = parseInt(paramFrom[1]);
+
+            return Math.abs(toX - fromX) + Math.abs(toY - fromY);
+        },
+
+        evaluationFunctions: {
+            TicTacToe: function(state) {
+
+                return 10;
+            }
+        }
+    };
 
     TicTacToeBoard = (function(rows, columns) {
         self = this;
@@ -388,7 +541,16 @@ var TicTacToe = (function() {
                         changeActivePlayer();
 
                         if(vsAI) {
-                            AIPlay();
+                            var AITypes = document.getElementsByName("ai-type"),
+                                AIType;
+
+                            for(var i = 0; i < AITypes.length; i++) {
+                                if(AITypes[i].checked == true) {
+                                    AIType = AITypes[i].value;
+                                }
+                            }
+
+                            AIPlay(AIType);
                         }
                     };
 
@@ -417,11 +579,9 @@ var TicTacToe = (function() {
         var cloneBoard = function(origBoard) {
             var clone = new Array(ROWS);
 
-            for (var r = 0; r < ROWS; r++) {
-                clone[r] = new Array(COLUMNS);
-            }
-
             for(var i = 0; i < ROWS; i++) {
+                clone[i] = new Array(COLUMNS);
+
                 for (var j = 0; j < COLUMNS; j++) {
                     clone[i][j] = origBoard[i][j];
                 }
@@ -454,21 +614,6 @@ var TicTacToe = (function() {
             }
         };
 
-        var Heuristics = {
-            // TODO Opisati u diplomskom ovu vrstu Matematike i Manhattan distance
-            //Manhattan distance on a square grid - Taxi cab mathematics
-            manhattanDistance: function(to, from) {
-                var paramTo = to.split('x'),
-                    toX = parseInt(paramTo[0]),
-                    toY = parseInt(paramTo[1]),
-                    paramFrom = from.split('x'),
-                    fromX = parseInt(paramFrom[0]),
-                    fromY = parseInt(paramFrom[1]);
-
-                return Math.abs(toX - fromX) + Math.abs(toY - fromY);
-            }
-        };
-
         var contains = function(a, obj) {
             var i = a.length;
             while (i--) {
@@ -484,7 +629,6 @@ var TicTacToe = (function() {
             cloneBoard: cloneBoard,
             insertPiece: insertPiece
         }
-
     })(ROWS, COLUMNS);
 
     return {
