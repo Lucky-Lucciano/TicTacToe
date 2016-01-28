@@ -348,12 +348,13 @@ var TicTacToe = (function() {
             if(state != 'NO') {
                 //return getUtilityValue(state);
                 //console.log("Max state: " + state + " - Alpha: " + alpha);
+                console.log("Max depth: " + depth);
 
                 return state;
             } else if(depth == cutOffValue) {
-                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board));
-                console.log("Min eval at depth: " + depth + "; state evaluation: " + eval);
-                return getUtilityValue(state);
+                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board), lastPlayer);
+                console.log("Max eval at depth: " + depth + "; state evaluation: " + eval);
+                return eval;
             }
 
             var score = Number.NEGATIVE_INFINITY,
@@ -399,7 +400,7 @@ var TicTacToe = (function() {
 
                 return state;
             } else if(depth == cutOffValue) {
-                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board));
+                var eval = Heuristics.evaluationFunctions.TicTacToe(TicTacToeBoard.cloneBoard(board), lastPlayer);
                 console.log("Min eval at depth: " + depth + "; state evaluation: " + eval);
                 return eval;
             }
@@ -433,7 +434,7 @@ var TicTacToe = (function() {
             //return beta;
         };
 
-        var alphaBetaSearch = function(board, player, depth) {
+        var alphaBetaSearch = function(board, player) {
             var alphaNuclearOption = Number.NEGATIVE_INFINITY,
                 betaNuclearOption = Number.POSITIVE_INFINITY,
                 value;
@@ -477,9 +478,44 @@ var TicTacToe = (function() {
         },
 
         evaluationFunctions: {
-            TicTacToe: function(state) {
+            TicTacToe: function(state, opponent) {
+                var possibleWinStates = 8,
+                    Three_in_a_Row = [
+                        [ 0, 1, 2 ],
+                        [ 3, 4, 5 ],
+                        [ 6, 7, 8 ],
+                        [ 0, 3, 6 ],
+                        [ 1, 4, 7 ],
+                        [ 2, 5, 8 ],
+                        [ 0, 4, 8 ],
+                        [ 2, 4, 6 ]
+                    ],
+                    heuristicArray = [
+                        [     0,    -1,    -5,  -1000],
+                        [     1,     0,     0,     0 ],
+                        [     5,     0,     0,     0 ],
+                        [  1000,     0,     0,     0 ]
+                    ];
 
-                return 10;
+                var state = state[0].concat(state[1]).concat(state[2]),
+                    player = getReversePlayer(opponent),
+                    playersPieces,
+                    opponentsPieces,
+                    piece,
+                    t = 0;
+
+                for (var i = 0; i < 8; i++)  {
+                    playersPieces = opponentsPieces = 0;
+                    for (var j = 0; j < 3; j++)  {
+                        piece = state[Three_in_a_Row[i][j]];
+                        if(piece == player)
+                            playersPieces++;
+                        else if (piece == opponent)
+                            opponentsPieces++;
+                    }
+                    t += heuristicArray[playersPieces][opponentsPieces];
+                }
+                return t;
             }
         }
     };
